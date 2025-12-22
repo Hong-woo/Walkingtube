@@ -1,55 +1,75 @@
 'use client';
 
-import React, { useState } from 'react';
-import Map from 'react-map-gl/mapbox';
+import React, { useState, useEffect, useRef } from 'react';
+import Map, { GeolocateControl, MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Video } from '@/types/video';
 import VideoMarker from './VideoMarker';
 import VideoModal from '@/components/video/VideoModal';
-
-// Temporary mock data
-const MOCK_VIDEOS: Video[] = [
-    {
-        id: '1',
-        title: 'Bangkok Street Food Tour',
-        youtubeId: 'PeW133e5q7I', // Valid example
-        latitude: 13.7563,
-        longitude: 100.5018,
-        locationName: 'Bangkok, Thailand',
-        description: 'Exploring the best street food in Chinatown Bangkok.',
-        createdAt: '2023-11-15'
-    },
-    {
-        id: '2',
-        title: 'Walking in Shibuya 4K',
-        youtubeId: 'W1WdbWq-7u0', // Valid example
-        latitude: 35.6595,
-        longitude: 139.7004,
-        locationName: 'Shibuya, Tokyo',
-        description: 'Rainy night walk in Shibuya crossing.',
-        createdAt: '2023-10-01'
-    },
-    {
-        id: '3',
-        title: 'Bali Rice Terraces',
-        youtubeId: 'hJ80C2hD0y8', // Valid Example
-        latitude: -8.4095,
-        longitude: 115.1889,
-        locationName: 'Ubud, Bali',
-        description: 'Peaceful walk through Tegalalang Rice Terrace.',
-        createdAt: '2023-12-05'
-    }
-];
+import { fetchVideos } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
+import { User } from '@supabase/supabase-js';
+import AuthModal from '@/components/auth/AuthModal';
+import { LogIn, LogOut, Plus } from 'lucide-react';
 
 export default function MapContainer() {
+    const mapRef = useRef<MapRef>(null);
+    const [videos, setVideos] = useState<Video[]>([]);
     const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+    const [mounted, setMounted] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [viewState, setViewState] = useState({
-        longitude: 100.5018,
-        latitude: 13.7563,
-        zoom: 4
+        longitude: 126.9780, // Default to Seoul
+        latitude: 37.5665,
+        zoom: 14
     });
 
+    useEffect(() => {
+        setMounted(true);
+
+        // Check Auth
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user ?? null);
+        });
+
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        // Fetch videos
+        const loadVideos = async () => {
+            const data = await fetchVideos();
+            setVideos(data);
+        };
+        loadVideos();
+
+        // Get User Location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setViewState(prev => ({
+                        ...prev,
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        zoom: 14 // Zoom in closer for user location
+                    }));
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                    // Fallback or keep default (Seoul)
+                }
+            );
+        }
+
+        return () => subscription.unsubscribe();
+    }, []);
+
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+    if (!mounted) return null;
 
     if (!mapboxToken || mapboxToken.includes('your_mapbox')) {
         return (
@@ -70,13 +90,15 @@ export default function MapContainer() {
     return (
         <div className="w-full h-screen relative">
             <Map
+                ref={mapRef}
                 {...viewState}
                 onMove={evt => setViewState(evt.viewState)}
                 style={{ width: '100%', height: '100%' }}
-                mapStyle="mapbox://styles/mapbox/dark-v11"
+                mapStyle="mapbox://styles/mapbox/streets-v12"
                 mapboxAccessToken={mapboxToken}
             >
-                {MOCK_VIDEOS.map(video => (
+                <GeolocateControl position="top-right" />
+                {videos.map(video => (
                     <VideoMarker
                         key={video.id}
                         video={video}
@@ -85,10 +107,44 @@ export default function MapContainer() {
                 ))}
             </Map>
 
+            {/* Top Left Menu */}
+            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                {user ? (
+                    <>
+                        <button
+                            className="bg-black text-white px-4 py-2 rounded-full font-medium shadow-lg hover:bg-gray-800 transition-all flex items-center gap-2"
+                        >
+                            <Plus size={18} />
+                            <span>동영상 추가</span>
+                        </button>
+                        <button
+                            onClick={() => supabase.auth.signOut()}
+                            className="bg-white text-gray-700 px-4 py-2 rounded-full font-medium shadow-lg hover:bg-gray-50 transition-all flex items-center gap-2 border border-gray-200"
+                        >
+                            <LogOut size={18} />
+                            <span>로그아웃</span>
+                        </button>
+                    </>
+                ) : (
+                    <button
+                        onClick={() => setIsAuthModalOpen(true)}
+                        className="bg-black text-white px-5 py-2.5 rounded-full font-medium shadow-lg hover:bg-gray-800 transition-all flex items-center gap-2"
+                    >
+                        <LogIn size={18} />
+                        <span>로그인</span>
+                    </button>
+                )}
+            </div>
+
             <VideoModal
                 video={selectedVideo}
                 isOpen={!!selectedVideo}
                 onClose={() => setSelectedVideo(null)}
+            />
+
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
             />
         </div>
     );
