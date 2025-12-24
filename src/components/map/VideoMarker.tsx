@@ -2,6 +2,11 @@ import React from 'react';
 import { Marker } from 'react-map-gl/mapbox';
 import { Video } from '@/types/video';
 import { Play } from 'lucide-react';
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 interface VideoMarkerProps {
     video: Video;
@@ -19,15 +24,52 @@ export default function VideoMarker({ video, onClick }: VideoMarkerProps) {
                 onClick(video);
             }}
         >
-            <div className="group relative cursor-pointer transform transition-transform hover:z-10">
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-black text-xs font-bold px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
-                    {video.title}
-                </div>
-                <div className="w-10 h-10 bg-red-600 rounded-full border-2 border-white shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Play size={16} fill="white" className="text-white ml-0.5" />
-                </div>
-                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-t-[8px] border-t-red-600 border-r-[6px] border-r-transparent mx-auto drop-shadow-sm"></div>
-            </div>
+            <HoverCard openDelay={100} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                    <div className="group relative cursor-pointer transform transition-all hover:scale-110 active:scale-95 duration-200">
+                        {/* Pulse effect */}
+                        <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping group-hover:block hidden" />
+
+                        <div className="w-12 h-12 bg-white rounded-full shadow-2xl border-4 border-primary flex items-center justify-center relative z-10 overflow-hidden transform transition-rotate group-hover:rotate-12">
+                            {video.youtubeId ? (
+                                <img
+                                    src={`https://img.youtube.com/vi/${video.youtubeId}/default.jpg`}
+                                    alt={video.title}
+                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                />
+                            ) : (
+                                <Play size={20} className="text-primary fill-primary/20" />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                        </div>
+
+                        {/* Connector triangle */}
+                        <div className="w-0 h-0 border-l-[6px] border-l-transparent border-t-[8px] border-t-primary border-r-[6px] border-r-transparent mx-auto -mt-1 drop-shadow-sm" />
+                    </div>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-64 glass-panel border-none p-0 overflow-hidden rounded-2xl shadow-xl z-50">
+                    <div className="aspect-video w-full relative">
+                        <img
+                            src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                            alt={video.title}
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <Play size={24} className="text-white fill-white/20" />
+                        </div>
+                    </div>
+                    <div className="p-4 bg-white/90 backdrop-blur-sm">
+                        <h4 className="font-bold text-sm text-neutral-900 line-clamp-1">{video.title}</h4>
+                        <div className="flex items-center gap-1 mt-1 text-[10px] text-neutral-500 font-medium">
+                            <span className="text-primary">📍</span>
+                            <span>{video.locationName || 'Unknown Location'}</span>
+                            <span>•</span>
+                            <span>{new Date(video.createdAt).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </HoverCardContent>
+            </HoverCard>
         </Marker>
     );
 }
+

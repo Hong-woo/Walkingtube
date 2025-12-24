@@ -1,0 +1,229 @@
+# WalkingTube
+
+## Antigravity Submission – UX Markup Document
+
+---
+
+## 1. UX Core Statement
+
+> **Map is the Feed. Exploration is the Interface.**
+
+WalkingTube is designed as a **spatial-first video platform** where users explore places through movement on a map rather than scrolling through lists or algorithmic feeds.
+
+---
+
+## 2. UX Design Principles
+
+### 2.1 Exploration First
+
+* No default feed
+* No forced recommendations
+* User intent expressed through **pan / zoom / tap**
+
+### 2.2 Spatial Context Preservation
+
+* Map is always visible
+* Content never detaches from location
+* UI layers float above the map, never replace it
+
+### 2.3 Lightweight Interaction
+
+* 1–2 step interactions
+* Modal & Sheet-based UX
+* Minimal page navigation
+
+---
+
+## 3. Global Information Architecture (IA)
+
+```
+App Root
+├─ Map Home (Primary)
+│  ├─ Video Markers
+│  ├─ Filter Sheet
+│  └─ Floating Actions
+│
+├─ Upload Flow
+├─ Community Layer
+├─ Saved (Bookmarks)
+└─ Profile
+```
+
+---
+
+## 4. Primary UX Flow (Explorer)
+
+```
+[ Launch App ]
+      ↓
+[ Map Home ]
+      ↓  (Pan / Zoom)
+[ Discover Marker ]
+      ↓  (Tap)
+[ Video Modal Opens ]
+      ↓
+[ Continue Exploring Nearby ]
+```
+
+* No search required to start
+* Curiosity-driven discovery
+* Continuous spatial loop
+
+---
+
+## 5. Spatial Content Model
+
+```
+Video
+  ↓
+Geographic Coordinate
+  ↓
+Map Layer
+  ↓
+User Exploration
+```
+
+* Every video is anchored to a real-world coordinate
+* Discovery happens through spatial proximity
+* Map acts as a living archive
+
+---
+
+## 6. Core Experience Unit – Video Modal
+
+### 6.1 Structural Markup
+
+```
+<Sheet position="bottom">
+  <AspectRatio>
+    <YouTubeEmbed />
+  </AspectRatio>
+
+  <Meta>
+    <Location />
+    <Creator />
+    <Timestamp />
+  </Meta>
+
+  <Interaction>
+    <Save />
+    <Share />
+    <Comment />
+  </Interaction>
+</Sheet>
+```
+
+### 6.2 UX Rules
+
+* Bottom Sheet preferred over full Dialog
+* Swipe to close
+* Map remains visible with blur
+
+---
+
+## 7. Creator → Explorer Loop
+
+```
+Creator Walks
+   ↓
+Records Video
+   ↓
+Pins on Map
+   ↓
+Explorer Discovers
+   ↓
+New Creator Emerges
+```
+
+* Community growth through movement
+* City evolves into a shared memory map
+
+---
+
+## 8. Design System Strategy (shadcn/ui Base)
+
+### 8.1 Base UI Choice
+
+**shadcn/ui** is used as the base design system due to:
+
+* Unopinionated visual defaults
+* Composable component architecture
+* Token-based theming
+* High compatibility with experimental UX (Antigravity-aligned)
+
+---
+
+### 8.2 Component Mapping
+
+```
+Map Home
+ ├─ Floating Button     → Button (variant=ghost)
+ ├─ Filter Panel        → Sheet / Drawer
+ └─ Marker Tooltip      → HoverCard
+
+Video Modal
+ ├─ Container           → Sheet (bottom)
+ ├─ Video Wrapper       → AspectRatio
+ ├─ Metadata            → Card + Separator
+ └─ Actions             → Button + Icon
+
+Community
+ ├─ Post List           → Card
+ ├─ Navigation          → Tabs
+ └─ Forms               → Input / Textarea / Select
+```
+
+---
+
+### 8.3 Interaction Priority
+
+```
+Map (Always Visible)
+   ↓
+Sheet / Bottom Modal
+   ↓
+Dialog (Rare)
+```
+
+* Page navigation minimized
+* Context never lost
+
+---
+
+### 8.4 Theming Strategy
+
+```
+Base Theme (shadcn)
+ ├─ Neutral grayscale
+ ├─ Rounded corners
+ └─ Subtle shadows
+
+Overlay Tokens (WalkingTube)
+ ├─ SEA Warm Accent
+ ├─ Map Highlight Color
+ └─ Creator Identity Color
+```
+
+> shadcn/ui provides the skeleton, WalkingTube provides the spatial soul.
+
+---
+
+## 9. Antigravity Research Alignment
+
+### 9.1 UX Experiments
+
+* Map as primary content surface
+* Video as spatial memory
+* Exploration without algorithmic feed
+
+### 9.2 Research Questions
+
+* How do users explore unfamiliar cities?
+* How does video affect spatial memory?
+* Can maps become storytelling interfaces?
+
+---
+
+## 10. One-line Summary
+
+> **WalkingTube is an Antigravity-style experiment where space replaces scroll, and maps become living media.**
