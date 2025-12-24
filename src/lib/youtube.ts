@@ -2,13 +2,45 @@
  * YouTube URL에서 Video ID를 추출합니다
  * 지원 형식:
  * - https://www.youtube.com/watch?v=dQw4w9WgXcQ
+ * - https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share
  * - https://youtu.be/dQw4w9WgXcQ
+ * - https://youtu.be/dQw4w9WgXcQ?si=xxxxx (모바일 공유)
  * - https://www.youtube.com/embed/dQw4w9WgXcQ
+ * - https://m.youtube.com/watch?v=dQw4w9WgXcQ (모바일)
+ * - https://youtube.com/shorts/dQw4w9WgXcQ (Shorts)
  * - dQw4w9WgXcQ (직접 ID)
  */
 export function extractYouTubeID(url: string): string {
+    // Trim whitespace
+    url = url.trim();
+
+    // Try to parse as URL
+    try {
+        const urlObj = new URL(url);
+        const hostname = urlObj.hostname.replace('www.', '').replace('m.', '');
+
+        // youtube.com/watch?v=ID
+        if (hostname === 'youtube.com' && urlObj.pathname === '/watch') {
+            const videoId = urlObj.searchParams.get('v');
+            if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+                return videoId;
+            }
+        }
+
+        // youtu.be/ID or youtube.com/embed/ID or youtube.com/shorts/ID
+        if (hostname === 'youtu.be' || hostname === 'youtube.com') {
+            const match = urlObj.pathname.match(/^\/(?:embed\/|shorts\/)?([a-zA-Z0-9_-]{11})/);
+            if (match) {
+                return match[1];
+            }
+        }
+    } catch (e) {
+        // Not a valid URL, might be just an ID
+    }
+
+    // Fallback: Try regex patterns
     const patterns = [
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
         /^([a-zA-Z0-9_-]{11})$/
     ];
 
