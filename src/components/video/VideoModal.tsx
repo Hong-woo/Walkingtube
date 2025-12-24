@@ -33,19 +33,37 @@ export default function VideoModal({ video, isOpen, onClose, currentUser, onDele
     // Check if current user is the author
     const isAuthor = currentUser?.id === video.authorId;
 
-    const handleDelete = async () => {
-        if (!video || !isAuthor) return;
+    // Debug logging
+    console.log('VideoModal Debug:', {
+        currentUserId: currentUser?.id,
+        videoAuthorId: video.authorId,
+        isAuthor: isAuthor
+    });
 
+
+    const handleDelete = async () => {
+        if (!video || !isAuthor) {
+            console.log('Delete blocked:', { hasVideo: !!video, isAuthor });
+            return;
+        }
+
+        console.log('Starting delete for video:', video.id);
         setIsDeleting(true);
         try {
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('videos')
                 .delete()
-                .eq('id', video.id);
+                .eq('id', video.id)
+                .select();
+
+            console.log('Delete result:', { data, error });
 
             if (error) {
+                console.error('Supabase delete error:', error);
                 throw error;
             }
+
+            console.log('Delete successful, calling callbacks');
 
             // Call parent callback
             if (onDelete) {
@@ -56,7 +74,7 @@ export default function VideoModal({ video, isOpen, onClose, currentUser, onDele
             onClose();
         } catch (error) {
             console.error('Failed to delete video:', error);
-            alert('영상 삭제에 실패했습니다.');
+            alert(`영상 삭제에 실패했습니다.\n\n에러: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         } finally {
             setIsDeleting(false);
             setShowDeleteConfirm(false);
@@ -110,15 +128,14 @@ export default function VideoModal({ video, isOpen, onClose, currentUser, onDele
                             {isAuthor && (
                                 <Button
                                     variant="ghost"
-                                    size="icon"
-                                    className="text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-full"
+                                    className="w-12 h-12 text-red-400 bg-red-500/10 hover:bg-red-500/20 hover:text-red-300 rounded-full border border-red-400/20 hover:border-red-400/40 transition-all hover:scale-110"
                                     onClick={() => setShowDeleteConfirm(true)}
                                     disabled={isDeleting}
                                 >
                                     {isDeleting ? (
-                                        <Loader2 className="w-7 h-7 animate-spin" />
+                                        <Loader2 className="w-6 h-6 animate-spin" />
                                     ) : (
-                                        <Trash2 className="w-7 h-7" />
+                                        <Trash2 className="w-6 h-6" />
                                     )}
                                 </Button>
                             )}

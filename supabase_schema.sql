@@ -23,3 +23,14 @@ create policy "Public videos are viewable by everyone"
 create policy "Users can insert their own videos"
   on videos for insert
   with check ( auth.uid() = author_id );
+
+-- Policy: Users can update their own videos
+create policy "Users can update their own videos"
+  on videos for update
+  using ( auth.uid() = author_id );
+
+-- Policy: Users can delete their own videos
+create policy "Users can delete their own videos"
+  on videos for delete
+  using ( auth.uid() = author_id );
+
