@@ -14,7 +14,7 @@ import {
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Bookmark, Share2, MessageCircle, MoreHorizontal, User as UserIcon, MapPin, Calendar, Trash2, Loader2 } from 'lucide-react';
+import { Bookmark, Share2, MessageCircle, MoreHorizontal, User as UserIcon, MapPin, Calendar, Trash2, Loader2, X } from 'lucide-react';
 
 interface VideoModalProps {
     video: Video | null;
@@ -92,7 +92,19 @@ export default function VideoModal({ video, isOpen, onClose, currentUser, onDele
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="mx-auto w-12 h-1.5 bg-white/20 rounded-full mt-4 mb-2" />
+                {/* Drag handle and close button */}
+                <div className="relative">
+                    <div className="mx-auto w-12 h-1.5 bg-white/30 rounded-full mt-4 mb-2" />
+
+                    {/* Large mobile-friendly close button */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-2 right-4 w-12 h-12 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:bg-black/80 hover:border-white/40 transition-all active:scale-95 z-10"
+                        aria-label="닫기"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
 
                 <div className="flex flex-col h-full max-w-5xl mx-auto overflow-y-auto pb-20">
                     <div className="px-6 py-4">
